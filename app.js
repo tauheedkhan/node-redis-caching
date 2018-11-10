@@ -7,9 +7,10 @@ const request = require('request-promise')
 const redis_port = process.env.REDIS_PORT || 6379;
 const app_port = process.env.APP_PORT || 8000;
 const beer_host = process.env.BEER_API_HOST || 'http://api.punkapi.com/v2/beers';
+const cache_timeout = process.env.TIMEOUT || 300;
 
 const redis_options = {
-    host: '127.0.0.1',
+    host: 'redis',
     port: redis_port,
     logErrors: true
 };
@@ -36,7 +37,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(methodOverride('_method'));
 
 app.get('/v2/beers', (req, res) => {
-    const timeOut = req.query.cacheTime
     const ids = req.query.ids;
 
     client.get(ids, (err, data) => {
@@ -49,7 +49,7 @@ app.get('/v2/beers', (req, res) => {
             }
             request(request_options)
                 .then(function (response) {
-                    client.setex(ids, timeOut, JSON.stringify(response.body));
+                    client.setex(ids, parseInt(cache_timeout), JSON.stringify(response.body));
                     res.send(response.body);
                 })
                 .catch(function (err) {
@@ -63,6 +63,10 @@ app.get('/v2/beers', (req, res) => {
 
 });
 
+app.get('/v2/beers/delete', (req, res) => {
+   client.flushall();
+   res.send('Cache deleted');
+})
 
 app.listen(app_port, () => {
     console.log(`Server started at port ${app_port}`);

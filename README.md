@@ -2,7 +2,8 @@
 Simple nodejs redis application
 
 
-Url : http://localhost:8000/v2/beers?ids=13&cacheTime=10
+Endpoints : 
 
-- Search by id
-- cacheTime in seconds
+getByID =  http://localhost:8000/v2/beers?ids=13
+deleteCache = http://localhost:8000/v2/beers/delete
+
